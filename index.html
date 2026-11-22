@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14151c">
+  <title>Interactive Audio Adventures</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="brand">Interactive Audio Adventures</div>
+    <div class="header-actions">
+      <button id="homeButton" class="secondary" type="button">Main library</button>
+      <span class="version">v0.1.0</span>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">
+    <div id="app" aria-busy="true"><h1>Loading adventure library…</h1></div>
+  </main>
+  <footer>Choose a story. Hear the scene. Decide what happens next.</footer>
+  <audio id="sceneAudio" preload="metadata"></audio>
+</body>
+</html>
