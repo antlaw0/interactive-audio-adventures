@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "id": "super-cat-demo",
+  "title": "Super Cat: The Rooftop Rescue",
+  "description": "A tiny demonstration of the reusable adventure format.",
+  "startScene": "alarm",
+  "scenes": [
+    {
+      "id": "alarm",
+      "title": "A Cry Across the Rooftops",
+      "text": "Super Cat hears a kitten calling from a rooftop across the street.",
+      "choices": [
+        {
+          "text": "Leap across the alley.",
+          "nextScene": "leap"
+        },
+        {
+          "text": "Take the fire escape.",
+          "nextScene": "stairs"
+        }
+      ]
+    },
+    {
+      "id": "leap",
+      "title": "The Great Leap",
+      "text": "With a mighty bound, Super Cat lands beside the frightened kitten.",
+      "choices": [
+        {
+          "text": "Carry the kitten to safety.",
+          "nextScene": "safe"
+        },
+        {
+          "text": "Call for help from the rooftop.",
+          "nextScene": "safe"
+        }
+      ]
+    },
+    {
+      "id": "stairs",
+      "title": "The Fire Escape",
+      "text": "Super Cat races up the old fire escape, arriving just in time.",
+      "choices": [
+        {
+          "text": "Guide the kitten down the stairs.",
+          "nextScene": "safe"
+        },
+        {
+          "text": "Carry the kitten home.",
+          "nextScene": "safe"
+        }
+      ]
+    },
+    {
+      "id": "safe",
+      "title": "A Hero's Welcome",
+      "text": "The kitten is home safe. The city cheers for its whiskered hero.",
+      "ending": {
+        "type": "success",
+        "label": "Rescue complete"
+      }
+    }
+  ]
+}
