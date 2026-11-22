@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "detective-mystery",
+      "title": "Detective Mystery",
+      "description": "Shadows, secrets, and tough decisions.",
+      "adventures": [
+        "noir-demo"
+      ]
+    },
+    {
+      "id": "super-cat",
+      "title": "Adventures of Super Cat",
+      "description": "Heroic paws and extraordinary rescues.",
+      "adventures": [
+        "super-cat-demo"
+      ]
+    }
+  ],
+  "adventures": [
+    {
+      "id": "noir-demo",
+      "manifest": "detective-mystery/noir-demo/adventure.json"
+    },
+    {
+      "id": "super-cat-demo",
+      "manifest": "super-cat/super-cat-demo/adventure.json"
+    }
+  ]
+}
