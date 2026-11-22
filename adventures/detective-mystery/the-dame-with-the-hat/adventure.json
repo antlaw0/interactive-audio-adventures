@@ -8,7 +8,7 @@
     {
       "id": "01",
       "title": "The Dame With the Hat",
-      "audio": "audio/01.mp3",
+      "audio": "01.mp3",
       "image": "images/01.jpg",
       "imageAlt": "A 1940s detective sits in a dark office overlooking a rainy city.",
       "text": "Vivian Cross asks detective Jack Marlowe to investigate her missing husband Ernest. Two leads emerge: Ernest's apartment and the Crooked Canary nightclub.",
@@ -26,7 +26,7 @@
     {
       "id": "02A",
       "title": "A Hat Full of Trouble",
-      "audio": "audio/02A.mp3",
+      "audio": "02A.mp3",
       "image": "images/02A.jpg",
       "imageAlt": "A shadowed detective questions a poised woman beneath stark office lighting.",
       "text": "Marlowe visits Ernest's apartment and learns more about the missing hat, the metal clasp, and Victor Sterling.",
@@ -40,7 +40,7 @@
     {
       "id": "02B",
       "title": "Knuckles and Sandwiches",
-      "audio": "audio/02B.mp3",
+      "audio": "02B.mp3",
       "image": "images/02B.jpg",
       "imageAlt": "A lone detective approaches a rain-soaked city street at night.",
       "text": "At the Crooked Canary, Marlowe questions Knuckles Malone and uncovers a connection to Victor Sterling and locker 47.",
@@ -54,7 +54,7 @@
     {
       "id": "03",
       "title": "Betty Does the Detecting",
-      "audio": "audio/03.mp3",
+      "audio": "03.mp3",
       "image": "images/03.jpg",
       "imageAlt": "A detective studies files and photographs at a cluttered desk by a rainy window.",
       "text": "Betty examines the hat and discovers further evidence. The trail now splits toward Sterling or the hat's hidden secrets.",
@@ -72,7 +72,7 @@
     {
       "id": "04A",
       "title": "A Millionaire's Bluff",
-      "audio": "audio/04A.mp3",
+      "audio": "04A.mp3",
       "image": "images/04A.jpg",
       "imageAlt": "Gloved hands examine a sealed envelope and photographs under a detective's lamp.",
       "text": "The investigation turns toward Victor Sterling and his secrets.",
@@ -86,7 +86,7 @@
     {
       "id": "04B",
       "title": "The Great Hat Caper",
-      "audio": "audio/04B.mp3",
+      "audio": "04B.mp3",
       "image": "images/04B.jpg",
       "imageAlt": "A detective examines a pocket watch in a shadowy shop filled with clocks.",
       "text": "The mystery of the stolen hat and its concealed evidence comes to a head.",
@@ -100,7 +100,7 @@
     {
       "id": "05",
       "title": "Case Closed",
-      "audio": "audio/05.mp3",
+      "audio": "05.mp3",
       "image": "images/05.jpg",
       "imageAlt": "A fedora-wearing detective surveys a rain-drenched alley beneath a streetlamp.",
       "text": "Jack Marlowe reaches the conclusion of his investigation.",
