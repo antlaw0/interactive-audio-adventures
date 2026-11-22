@@ -135,7 +135,7 @@ function validateAdventure(manifest) {
   if (!ids.has(manifest.startScene)) throw new Error("Starting scene was not found.");
   for (const scene of manifest.scenes) {
     if (scene.ending) continue;
-    if (!Array.isArray(scene.choices) || scene.choices.length < 2) throw new Error("Scene " + scene.id + " needs at least two choices or an ending.");
+    if (!Array.isArray(scene.choices) || scene.choices.length < 1) throw new Error("Scene " + scene.id + " needs at least one choice or an ending.");
     for (const choice of scene.choices) {
       if (!choice.text || !ids.has(choice.nextScene)) throw new Error("Scene " + scene.id + " has an invalid choice target.");
     } // end choices
