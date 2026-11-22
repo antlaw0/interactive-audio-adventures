@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "id": "noir-demo",
+  "title": "The Midnight Case",
+  "description": "A short interactive noir demonstration. Replace with your recorded seven-scene story when ready.",
+  "startScene": "office",
+  "scenes": [
+    {
+      "id": "office",
+      "title": "A Knock After Midnight",
+      "text": "Rain taps the window. A stranger arrives at your office carrying an envelope sealed with red wax.",
+      "choices": [
+        {
+          "text": "Open the envelope.",
+          "nextScene": "letter"
+        },
+        {
+          "text": "Ask the stranger who sent it.",
+          "nextScene": "visitor"
+        }
+      ]
+    },
+    {
+      "id": "letter",
+      "title": "The Letter",
+      "text": "Inside is a photograph of a clock stopped at midnight. A handwritten address points to the old station.",
+      "choices": [
+        {
+          "text": "Go to the station.",
+          "nextScene": "station"
+        },
+        {
+          "text": "Examine the photograph.",
+          "nextScene": "photo"
+        }
+      ]
+    },
+    {
+      "id": "visitor",
+      "title": "The Visitor",
+      "text": "She claims the missing watchmaker left the envelope for you. Her trembling hands suggest she's hiding something.",
+      "choices": [
+        {
+          "text": "Press her for the truth.",
+          "nextScene": "confession"
+        },
+        {
+          "text": "Follow the address on the envelope.",
+          "nextScene": "station"
+        }
+      ]
+    },
+    {
+      "id": "photo",
+      "title": "The Photograph",
+      "text": "A reflection in the glass shows a familiar silhouette. The watchmaker has been watching his own shop.",
+      "choices": [
+        {
+          "text": "Visit the watchmaker's shop.",
+          "nextScene": "resolution"
+        },
+        {
+          "text": "Check the old station first.",
+          "nextScene": "station"
+        }
+      ]
+    },
+    {
+      "id": "confession",
+      "title": "The Confession",
+      "text": "She admits she helped the watchmaker hide from a blackmailer. The key to his hiding place is at the station.",
+      "choices": [
+        {
+          "text": "Take the key and visit the station.",
+          "nextScene": "station"
+        },
+        {
+          "text": "Ask her to lead you there.",
+          "nextScene": "resolution"
+        }
+      ]
+    },
+    {
+      "id": "station",
+      "title": "The Old Station",
+      "text": "Behind a locked office door, you find the watchmaker alive and a ledger detailing the blackmail scheme.",
+      "choices": [
+        {
+          "text": "Bring the ledger to the authorities.",
+          "nextScene": "resolution"
+        },
+        {
+          "text": "Confront the blackmailer with the evidence.",
+          "nextScene": "resolution"
+        }
+      ]
+    },
+    {
+      "id": "resolution",
+      "title": "The Case Closes",
+      "text": "At dawn, the truth finally comes into the light. The watchmaker is safe and another mystery is solved.",
+      "ending": {
+        "type": "success",
+        "label": "Case solved"
+      }
+    }
+  ]
+}
