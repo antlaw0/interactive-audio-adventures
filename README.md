@@ -2,7 +2,7 @@
 
 A reusable, accessible, static choose-your-own-adventure web app with categories, independent adventures, branching scenes, optional images and recorded audio. No build step, account system, or backend.
 
-**Current version: 0.1.0**
+**Current version: 0.2.0**
 
 ## Start locally
 
@@ -119,3 +119,27 @@ WAV and MP3 work, but MP3 is recommended to reduce GitHub Pages storage and band
 ```powershell
 git pull --ff-only
 ```
+
+## Per-adventure background music (v0.2.0)
+
+Every adventure may define one looping background soundtrack in its `adventure.json`:
+
+```json
+"music": {
+  "src": "music/background.mp3",
+  "volume": 0.2
+}
+```
+
+- The music file path is **relative to the adventure.json file**, just like each scene's audio and image paths.
+- `volume` is from 0 (silent) to 1 (full volume); `0.2` is the recommended starting point under speech. The scene recording volume is not changed.
+- Place the soundtrack file into the adventure's `music` folder, with exactly the filename given in `src`.
+- The soundtrack loops continuously across branching choices and scene changes. The same music element is retained, so selecting a choice does **not** reset its playback position.
+- Pausing the scene player also pauses the soundtrack. Playing or resuming the scene resumes the soundtrack from where it left off.
+- When a scene ends, the music keeps playing during audience discussion until the next choice. Leaving the adventure for its category or the main library stops and clears the music.
+- A soundtrack-volume slider appears only in adventures with a `music` setting. It is independently adjustable and keyboard/screen-reader accessible.
+- The browser might block autoplay until the player presses Play; the soundtrack is started from the same user-initiated playback action.
+- If a music file is absent, scene audio still plays, but the music cannot start. The noir adventure is now configured to look for `adventures/detective-mystery/the-dame-with-the-hat/music/background.mp3`; **you must add that file yourself**. The engine does not include a music recording.
+
+If no `music` property is defined, an adventure plays exactly as it did previously.
+
