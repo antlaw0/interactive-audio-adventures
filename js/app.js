@@ -1,10 +1,12 @@
 "use strict";
 
-// Interactive Audio Adventures v0.2.1. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.3.0. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
-const music = document.getElementById("backgroundMusic");
+let music = document.getElementById("backgroundMusic");
+let standbyMusic = document.getElementById("standbyMusic");
+let musicTransition = 0;
 const homeButton = document.getElementById("homeButton");
 
 const state = {
@@ -17,7 +19,10 @@ const state = {
   loadToken: 0,
   musicReady: false,
   musicLevel: 0.2,
-  musicPlayPending: false
+  musicPlayPending: false,
+  musicSrc: "",
+  musicConfig: null,
+  musicPlayingDesired: false
 }; // end state
 
 const el = (tag, text, className) => {
@@ -46,48 +51,164 @@ function emptyScreen(label, title, description) {
   requestAnimationFrame(() => heading.focus());
 } // end emptyScreen
 
-function stopMusic() {
-  music.pause();
-  state.musicPlayPending = false;
-  music.removeAttribute("src");
-  music.load();
-  state.musicReady = false;
-} // end stopMusic
-
-function setupMusic(manifest) {
-  stopMusic();
-  if (!manifest.music) return;
-  const config = typeof manifest.music === "string" ? { src: manifest.music } : manifest.music;
-  if (!config || typeof config.src !== "string" || !config.src.trim()) return;
-  state.musicLevel = typeof config.volume === "number" ? Math.max(0, Math.min(1, config.volume)) : 0.2;
-  music.volume = state.musicLevel;
-  music.loop = true;
-  music.src = mediaUrl(config.src);
-  music.load();
-  state.musicReady = true;
-} // end setupMusic
-
 function musicMessage(message) {
-  const status = document.getElementById("musicStatus");
+  const status = document.getElementById("musicStatus") || document.getElementById("categoryMusicStatus");
   if (status) status.textContent = message;
 } // end musicMessage
 
+function cancelMusicFade() {
+  musicTransition += 1;
+  standbyMusic.pause();
+  standbyMusic.removeAttribute("src");
+  standbyMusic.load();
+} // end cancelMusicFade
+
+function stopMusic() {
+  cancelMusicFade();
+  music.pause();
+  music.removeAttribute("src");
+  music.load();
+  state.musicReady = false;
+  state.musicSrc = "";
+  state.musicConfig = null;
+  state.musicPlayingDesired = false;
+  state.musicPlayPending = false;
+} // end stopMusic
+
+function normalizeMusic(config, baseUrl) {
+  if (!config) return null;
+  const entry = typeof config === "string" ? { src: config } : config;
+  if (!entry || typeof entry.src !== "string" || !entry.src.trim()) return null;
+  return {
+    src: new URL(entry.src, baseUrl).href,
+    volume: typeof entry.volume === "number" ? Math.max(0, Math.min(1, entry.volume)) : 0.2
+  }; // end normalized config
+} // end normalizeMusic
+
+function categorySoundtrack(category) {
+  return normalizeMusic(category.music, new URL("adventures/catalog.json", document.baseURI));
+} // end categorySoundtrack
+
+function playMusic(element = music) {
+  if (!element.src || !state.musicPlayingDesired) return;
+  const playRequest = element.play();
+  if (playRequest && typeof playRequest.catch === "function") {
+    playRequest.catch(error => {
+      if (error.name === "AbortError") return;
+      if (error.name === "NotAllowedError") {
+        musicMessage("Your browser blocked automatic music. Select Start background music.");
+      } else {
+        musicMessage("Music could not start: " + error.name + ". Select Start background music.");
+      } // end error handling
+    }); // end playback result
+  } // end promise support
+} // end playMusic
+
 function resumeMusic() {
-  if (!state.musicReady || !music.paused || state.musicPlayPending) return;
-  state.musicPlayPending = true;
-  music.play().then(() => {
-    state.musicPlayPending = false;
-    musicMessage("");
-  }).catch(error => {
-    state.musicPlayPending = false;
-    if (error.name === "AbortError") return;
-    if (error.name === "NotAllowedError") {
-      musicMessage("Browser blocked automatic music playback. Select Start background music.");
-    } else {
-      musicMessage("Music playback failed: " + error.name + ". Try Start background music.");
-    } // end error categorization
-  }); // end playback attempt
+  state.musicPlayingDesired = true;
+  playMusic(music);
 } // end resumeMusic
+
+function pauseMusic() {
+  state.musicPlayingDesired = false;
+  music.pause();
+  standbyMusic.pause();
+  cancelMusicFade();
+  music.volume = state.musicLevel;
+} // end pauseMusic
+
+function setSoundtrack(config, shouldPlay = true) {
+  const desired = config;
+  if (!desired) {
+    stopMusic();
+    return;
+  } // end no soundtrack
+
+  const wasPlaying = !music.paused;
+  if (state.musicSrc === desired.src) {
+    state.musicConfig = desired;
+    state.musicLevel = desired.volume;
+    music.volume = state.musicLevel;
+    state.musicPlayingDesired = shouldPlay;
+    if (shouldPlay) playMusic(music);
+    return;
+  } // end same track
+
+  cancelMusicFade();
+  state.musicReady = true;
+  state.musicSrc = desired.src;
+  state.musicConfig = desired;
+  state.musicLevel = desired.volume;
+  state.musicPlayingDesired = shouldPlay;
+
+  if (!music.src || !wasPlaying || !shouldPlay) {
+    music.pause();
+    music.src = desired.src;
+    music.preload = "auto";
+    music.loop = true;
+    music.volume = desired.volume;
+    music.load();
+    if (shouldPlay) playMusic(music);
+    return;
+  } // end immediate switch
+
+  const fadingOut = music;
+  const fadingIn = standbyMusic;
+  fadingIn.src = desired.src;
+  fadingIn.preload = "auto";
+  fadingIn.loop = true;
+  fadingIn.volume = 0;
+  fadingIn.load();
+  const token = ++musicTransition;
+  const durationMs = 1200;
+  let startedAt = null;
+  const oldVolume = fadingOut.volume;
+
+  const doFade = timestamp => {
+    if (token !== musicTransition) return;
+    if (startedAt === null) startedAt = timestamp;
+    const progress = Math.min(1, (timestamp - startedAt) / durationMs);
+    fadingOut.volume = oldVolume * (1 - progress);
+    fadingIn.volume = desired.volume * progress;
+    if (progress < 1) {
+      requestAnimationFrame(doFade);
+    } else {
+      fadingOut.pause();
+      fadingOut.removeAttribute("src");
+      fadingOut.load();
+      music = fadingIn;
+      standbyMusic = fadingOut;
+      music.volume = state.musicLevel;
+    } // end fade
+  }; // end doFade
+  playMusic(fadingIn);
+  requestAnimationFrame(doFade);
+} // end setSoundtrack
+
+function addCategoryMusicControl() {
+  const musicControl = el("section", null, "player");
+  musicControl.setAttribute("aria-label", "Category background music controls");
+  const start = button("Start background music", () => resumeMusic(), "secondary");
+  const pause = button("Pause background music", () => pauseMusic(), "secondary");
+  const sliderLabel = el("label", "Background music volume");
+  const slider = el("input");
+  slider.type = "range";
+  slider.id = "categoryMusicVolume";
+  slider.min = "0";
+  slider.max = "100";
+  slider.step = "5";
+  slider.value = String(Math.round(state.musicLevel * 100));
+  sliderLabel.htmlFor = slider.id;
+  slider.addEventListener("input", () => {
+    state.musicLevel = Number(slider.value) / 100;
+    music.volume = state.musicLevel;
+  }); // end slider
+  musicControl.append(start, pause, sliderLabel, slider);
+  const status = el("p", "", "music-status");
+  status.id = "categoryMusicStatus";
+  musicControl.append(status);
+  app.append(musicControl);
+} // end addCategoryMusicControl
 
 function stopAudio() {
   audio.pause();
@@ -140,12 +261,15 @@ function showLibrary() {
 } // end showLibrary
 
 async function showCategory(categoryId) {
-  stopMusic();
   const category = findCategory(categoryId);
   if (!category) return errorScreen("Unknown category: " + categoryId);
   const token = ++state.loadToken;
   state.category = category;
+  state.adventure = null;
+  state.scene = null;
+  setSoundtrack(categorySoundtrack(category), true);
   emptyScreen("Adventure category", category.title, category.description);
+  if (state.musicReady) addCategoryMusicControl();
   addBack("Back to categories", showLibrary);
   const grid = el("div", null, "grid");
   app.append(grid);
@@ -196,7 +320,6 @@ async function openAdventure(id) {
   const listing = findListing(id);
   if (!listing) return errorScreen("Adventure is not registered: " + id);
   const token = ++state.loadToken;
-  stopMusic();
   emptyScreen("Loading adventure", "Opening your story…");
   try {
     const url = new URL(listing.manifest, new URL("adventures/catalog.json", document.baseURI)).href;
@@ -205,7 +328,8 @@ async function openAdventure(id) {
     validateAdventure(manifest);
     state.adventure = manifest;
     state.manifestUrl = url;
-    setupMusic(manifest);
+    const chosen = manifest.music ? normalizeMusic(manifest.music, url) : categorySoundtrack(state.category);
+    setSoundtrack(chosen, true);
     showScene(manifest.startScene);
   } catch (error) {
     if (token === state.loadToken) errorScreen(error.message);
@@ -260,7 +384,7 @@ function showScene(id) {
     app.append(el("h2", scene.ending.label || "The end"));
     app.append(el("p", "You have reached an ending."));
     const actions = el("div", null, "end-actions");
-    actions.append(button("Replay this adventure", () => { setupMusic(state.adventure); showScene(state.adventure.startScene); }));
+    actions.append(button("Replay this adventure", () => { showScene(state.adventure.startScene); }));
     actions.append(button("More adventures in this category", () => showCategory(state.category.id)));
     actions.append(button("Main library", showLibrary, "secondary"));
     app.append(actions);
@@ -312,7 +436,7 @@ function buildPlayer(scene, token) {
       resumeMusic();
     } else {
       audio.pause();
-      music.pause();
+      pauseMusic();
     } // end play toggle
   });
   const forward = button("Forward 15 seconds", () => { audio.currentTime = Math.min(Number.isFinite(audio.duration) ? audio.duration : Infinity, audio.currentTime + 15); });
