@@ -2,7 +2,7 @@
 
 A reusable, accessible, static choose-your-own-adventure web app with categories, independent adventures, branching scenes, optional images and recorded audio. No build step, account system, or backend.
 
-**Current version: 0.2.0**
+**Current version: 0.3.0**
 
 ## Start locally
 
@@ -147,3 +147,25 @@ If no `music` property is defined, an adventure plays exactly as it did previous
 ### Music playback troubleshooting
 
 The player includes a **Start background music** button, which explicitly starts music in response to a user gesture if a browser blocks automatic playback. If music fails, the UI distinguishes browser autoplay restriction from other playback errors. The soundtrack stays running across scene changes and remains independently adjustable.
+
+## Category soundtracks (v0.3.0)
+
+Categories in `adventures/catalog.json` can define their own looping music. Music paths in the catalog are relative to `adventures/catalog.json`:
+
+```json
+"music": {
+  "src": "detective-mystery/the-dame-with-the-hat/music/background.mp3",
+  "volume": 0.2
+}
+```
+
+A category soundtrack starts when the user opens the category (subject to browser gesture/autoplay rules) and repeats while browsing its adventures. A particular adventure can omit `music` to inherit the category track. Or it can set its own `music` property relative to its own `adventure.json`.
+
+When a category and adventure resolve to the **same audio URL**, the music element is reused without restarting playback. When the URLs differ, the app crossfades from the prior track to the new track over approximately 1.2 seconds. Returning to the category restores its music; returning to the main library stops music.
+
+Examples:
+- Detective Mystery category currently uses the existing noir `music/background.mp3` shared with The Dame With the Hat.
+- Other categories may omit `music` entirely until a track is added.
+- The optional adventure music player volume slider remains available.
+
+Browsers may block initial automatic playback, especially on mobile and cast environments. Use the **Start background music** button on the category screen when needed. MP3s should be loop-ready and uploaded at their configured paths.
