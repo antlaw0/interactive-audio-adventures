@@ -2,7 +2,7 @@
 
 A reusable, accessible, static choose-your-own-adventure web app with categories, independent adventures, branching scenes, optional images and recorded audio. No build step, account system, or backend.
 
-**Current version: 0.5.0**
+**Current version: 0.6.0**
 
 ## Start locally
 
@@ -185,3 +185,26 @@ Test presentation view on the target phone and television, since landscape and p
 On desktop-sized presentation/fullscreen screens, scene artwork stays on the left and a right-hand rail contains, from top to bottom, a reserved empty area for future spoken-text captions, vertically stacked story choices, and the scene audio player below. One- and multi-choice scenes as well as story endings use the same rail. The scene controls and choices remain accessible with the keyboard. The actual DOM is reordered on switching between standard/presentation modes so the focus order follows the visual order in each mode. Standard view keeps the player before the choices.
 
 The transcript/caption area is reserved for future work; no live captions or transcripts were added. Compact layouts allow scrolling rather than clipping controls.
+
+## Speaker-labeled captions (v0.6.0)
+
+A scene can reference a WebVTT caption file relative to its adventure.json, for example:
+
+```json
+"captions": "captions/01.vtt"
+```
+
+The player loads the VTT file, displays the current cue in the reserved area above story decisions, and updates it using the scene audio's playback position. Pausing, seeking, restarting and changing scenes automatically update the displayed caption. Captions are enabled by default when a VTT file is available, and the scene player provides a Hide captions / Show captions button. The transcript summary builds a readable complete transcript from the same cues.
+
+Speaker labels use standard WebVTT voice spans, for example:
+
+```vtt
+WEBVTT
+
+00:00:01.000 --> 00:00:03.500
+<v Betty>Hey, boss. The landlord called again.
+```
+
+The visual caption region deliberately uses `aria-live="off"` so timed changes do not continually interrupt screen-reader speech. Screen-reader users can browse the explicitly opened transcript instead. Captions and full transcripts are not dependent on local storage. Adventures without captions still function normally.
+
+The seven draft noir VTT files must be uploaded under `adventures/detective-mystery/the-dame-with-the-hat/captions/` before captions will play. The original script was matched with faster-whisper word timing. Automated alignment does **not** establish publication-ready caption accuracy: listen to each scene and review voice assignments, transcription differences, punctuation, timing, and meaningful sound effects. A missing VTT produces an error message but does not block audio.
