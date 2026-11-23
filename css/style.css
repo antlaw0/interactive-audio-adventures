@@ -321,3 +321,69 @@ body.presentation-mode:has(.scene-stage) .scene-decisions .end-actions button {
   }
   body.presentation-mode:has(.scene-stage) .scene-sidebar .player { max-height: none; }
 }
+
+/* Timed captions v0.6.0: a static, non-live-announcing text region. */
+.spoken-text-slot {
+  display: block;
+  min-width: 0;
+  border: 1px solid #55515c;
+  background: #101015;
+  border-radius: .7rem;
+  padding: .75rem 1rem;
+  margin: .5rem 0;
+}
+.active-caption {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-height: 3.5rem;
+  justify-content: center;
+  overflow-wrap: anywhere;
+}
+.active-caption[hidden] { display: none !important; }
+.caption-speaker {
+  display: block;
+  color: #f0d39a;
+  font-size: .9rem;
+  font-weight: 750;
+  letter-spacing: .045em;
+}
+.caption-text { display: block; color: #fff; font-size: 1.12rem; line-height: 1.4; }
+.captions-toggle { align-self: flex-start; min-height: 38px; padding: .3rem .75rem; }
+.caption-status { color: #f4c7a8; margin: 0; }
+.caption-status:empty { display: none; }
+.transcript-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 35vh;
+  overflow: auto;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  border: 1px solid #55515c;
+  border-radius: .45rem;
+  padding: 1rem;
+}
+body.presentation-mode:has(.scene-stage) .spoken-text-slot {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: clamp(.7rem,1.25vw,1.4rem);
+  margin: 0;
+}
+body.presentation-mode:has(.scene-stage) .spoken-text-slot .active-caption {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+}
+body.presentation-mode:has(.scene-stage) .caption-speaker {
+  font-size: clamp(.95rem,1.25vw,1.35rem);
+}
+body.presentation-mode:has(.scene-stage) .caption-text {
+  font-size: clamp(1.25rem,1.9vw,2.1rem);
+  line-height: 1.32;
+}
+body.presentation-mode:has(.scene-stage) .captions-toggle {
+  font-size: .8rem;
+  min-height: 30px;
+}
