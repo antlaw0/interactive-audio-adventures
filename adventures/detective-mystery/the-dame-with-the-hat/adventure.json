@@ -109,5 +109,9 @@
         "label": "Case closed"
       }
     }
-  ]
+  ],
+  "music": {
+    "src": "music/background.mp3",
+    "volume": 0.2
+  }
 }
