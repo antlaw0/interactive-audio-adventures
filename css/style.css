@@ -52,3 +52,34 @@ footer { text-align:center; padding: 2rem 1rem; color:#c4c2c9; }
 .music-controls input { flex: 1; min-width: 120px; accent-color: #f1c879; }
 .music-status { flex-basis: 100%; margin: 0; color: #f0cca0; }
 .music-status:empty { display: none; }
+
+/* Presenter mode is a responsive layout, not a separate inaccessible player. */
+[hidden] { display: none !important; }
+.scene-stage { display: block; }
+.presentation-mode { font-size: 1.15rem; }
+.presentation-mode main { max-width: 1650px; width: 100%; padding: 1.2rem clamp(1rem, 2.5vw, 2.5rem) 3rem; }
+.presentation-mode .site-header { padding: .65rem clamp(1rem, 2.5vw, 2.5rem); }
+.presentation-mode h1 { font-size: clamp(2rem, 4vw, 4rem); margin-bottom: .5rem; }
+.presentation-mode h2 { font-size: clamp(1.7rem, 3vw, 2.7rem); margin: .7rem 0; }
+.presentation-mode .eyebrow { font-size: 1rem; }
+.presentation-mode .scene-stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; align-items: stretch; margin: .5rem 0 1rem; }
+.presentation-mode .story-art { width: 100%; max-height: min(55vh, 650px); height: 100%; min-height: 220px; object-fit: contain; margin: 0; }
+.presentation-mode .player { margin: 0; padding: 1.15rem; display: flex; flex-direction: column; justify-content: center; }
+.presentation-mode .player-buttons button { min-height: 60px; font-size: 1.1rem; }
+.presentation-mode .choices { gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); }
+.presentation-mode .choice { min-height: 88px; font-size: clamp(1.15rem, 2.1vw, 1.7rem); font-weight: 650; padding: 1.1rem 1.4rem; border-width: 3px; }
+.presentation-mode .tile { min-height: 190px; padding: 1.5rem; }
+.presentation-mode .tile-title { font-size: clamp(1.5rem, 2.5vw, 2rem); }
+.presentation-mode .tile-description { font-size: 1.1rem; }
+.presentation-mode .end-actions button { min-height: 64px; font-size: 1.15rem; }
+.presentation-mode button:focus-visible { outline-width: 5px; }
+@media (min-width: 900px) {
+  .presentation-mode .scene-stage:has(.story-art):has(.player) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(350px, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .presentation-mode .story-art { max-height: 38vh; min-height: 150px; }
+  .presentation-mode .player-buttons button { flex: 1 1 40%; }
+  .presentation-mode .choice { min-height: 72px; }
+}
