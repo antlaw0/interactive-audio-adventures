@@ -1,0 +1,16 @@
+# Film Noir Adventure: Media Package
+
+These are your seven supplied recordings converted to 192 kbps MP3 and seven temporary film-noir images.
+
+1. In your local GitHub repository folder, run: git pull --ff-only
+2. Extract this ZIP into the repository's ROOT folder, preserving its adventures/ folder structure.
+3. Run: git add adventures
+4. Run: git commit -m "Add seven noir scene recordings and placeholder artwork"
+5. Run: git push
+
+Your GitHub repo already contains the adventure.json and catalog entries referencing these filenames.
+When the GitHub Pages deployment finishes, select Detective Mystery > The Dame With the Hat.
+
+The story follows the filenames: 01 branches to 02A or 02B; both converge at 03;
+03 branches to 04A or 04B; both converge at 05. Intermediate scenes have Continue choices.
+Images are temporary mood illustrations and are not precise story reconstructions.

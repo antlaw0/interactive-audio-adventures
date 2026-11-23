@@ -1,0 +1,8 @@
+Extract this ZIP into the root of your interactive-audio-adventures repository.
+It contains replacement story images for:
+adventures/detective-mystery/the-dame-with-the-hat/images/
+
+After extracting, run:
+git add adventures/detective-mystery/the-dame-with-the-hat/images
+git commit -m "Replace placeholder noir scene images"
+git push origin main
