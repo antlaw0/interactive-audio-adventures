@@ -1,6 +1,6 @@
 "use strict";
 
-// Interactive Audio Adventures v0.3.0. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.4.0. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
@@ -9,6 +9,8 @@ let standbyMusic = document.getElementById("standbyMusic");
 let musicTransition = 0;
 let fadeTarget = null;
 const homeButton = document.getElementById("homeButton");
+const presentationButton = document.getElementById("presentationButton");
+const fullscreenButton = document.getElementById("fullscreenButton");
 
 const state = {
   catalog: null,
@@ -23,7 +25,8 @@ const state = {
   musicPlayPending: false,
   musicSrc: "",
   musicConfig: null,
-  musicPlayingDesired: false
+  musicPlayingDesired: false,
+  presentationMode: false
 }; // end state
 
 const el = (tag, text, className) => {
@@ -39,6 +42,34 @@ const button = (text, onClick, className = "") => {
   node.addEventListener("click", onClick);
   return node;
 }; // end button
+
+function applyPresentationMode(active) {
+  state.presentationMode = active;
+  document.body.classList.toggle("presentation-mode", active);
+  presentationButton.setAttribute("aria-pressed", String(active));
+  presentationButton.textContent = active ? "Standard view" : "Presentation view";
+  fullscreenButton.hidden = !active;
+} // end applyPresentationMode
+
+presentationButton.addEventListener("click", () => {
+  applyPresentationMode(!state.presentationMode);
+}); // end presentation toggle
+
+fullscreenButton.addEventListener("click", async () => {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    } else if (document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen();
+    } // end fullscreen request
+  } catch (error) {
+    fullscreenButton.title = "Fullscreen is unavailable in this browser. Presentation layout still works.";
+  } // end fullscreen fallback
+}); // end fullscreen click
+
+document.addEventListener("fullscreenchange", () => {
+  fullscreenButton.textContent = document.fullscreenElement ? "Exit full screen" : "Full screen";
+}); // end fullscreenchange
 
 function emptyScreen(label, title, description) {
   stopAudio();
@@ -384,19 +415,22 @@ function showScene(id) {
   state.completedAudio = !scene.audio;
   emptyScreen(state.adventure.title, scene.title, scene.text || scene.description);
   addBack("Back to adventures", () => showCategory(state.category.id));
+  const stage = el("section", null, "scene-stage");
+  stage.setAttribute("aria-label", "Scene artwork and playback");
+  app.append(stage);
 
   if (scene.image) {
     const art = el("img", null, "story-art");
     art.src = mediaUrl(scene.image);
     art.alt = scene.imageAlt || "";
     art.addEventListener("error", () => art.remove(), { once: true });
-    app.append(art);
+    stage.append(art);
   } // end optional image
 
   if (scene.audio) {
-    buildPlayer(scene, token);
+    buildPlayer(scene, token, stage);
   } else {
-    app.append(el("p", "Text-only preview: no audio file assigned to this scene.", "info"));
+    stage.append(el("p", "Text-only preview: no audio file assigned to this scene.", "info"));
   } // end optional audio
 
   if (scene.transcript) {
@@ -447,7 +481,7 @@ function showScene(id) {
   } // end auto play
 } // end showScene
 
-function buildPlayer(scene, token) {
+function buildPlayer(scene, token, target = app) {
   const panel = el("section", null, "player");
   panel.setAttribute("aria-label", "Scene audio controls");
   const status = el("p", "Audio loading. If playback does not start, select Play.", "info");
@@ -509,7 +543,7 @@ function buildPlayer(scene, token) {
     }; // end soundtrack started
     panel.append(musicControl);
   } // end optional soundtrack controls
-  app.append(panel);
+  target.append(panel);
   audio.src = mediaUrl(scene.audio);
   audio.load();
   audio.onplay = () => { if (token === state.loadToken) { play.textContent = "Pause"; status.textContent = "Audio playing."; resumeMusic(); } };
