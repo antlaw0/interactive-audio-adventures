@@ -274,7 +274,7 @@ function showScene(id) {
   } // end scene branch
 
   if (scene.audio) {
-    audio.play().then(() => resumeMusic()).catch(() => {
+    audio.play().catch(() => {
       const status = document.getElementById("audioStatus");
       if (status && token === state.loadToken) status.textContent = "Select Play to start the scene audio.";
     }); // end autoplay fallback
@@ -288,11 +288,12 @@ function buildPlayer(scene, token) {
   status.id = "audioStatus";
   panel.append(status);
   const controls = el("div", null, "player-buttons");
-  const restart = button("Restart", () => { audio.currentTime = 0; audio.play().then(() => resumeMusic()).catch(() => {}); });
+  const restart = button("Restart", () => { audio.currentTime = 0; audio.play().catch(() => {}); resumeMusic(); });
   const rewind = button("Rewind 15 seconds", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
   const play = button("Play", () => {
     if (audio.paused) {
-      audio.play().then(() => resumeMusic()).catch(() => { status.textContent = "Playback failed. Check that the audio file exists."; });
+      audio.play().catch(() => { status.textContent = "Playback failed. Check that the audio file exists."; });
+      resumeMusic();
     } else {
       audio.pause();
       music.pause();
@@ -332,6 +333,9 @@ function buildPlayer(scene, token) {
     const musicStatus = el("p", "", "music-status");
     musicStatus.id = "musicStatus";
     musicControl.append(musicStatus);
+    music.onerror = () => {
+      if (token === state.loadToken) musicStatus.textContent = "Background music file could not be loaded. Scene audio is unaffected.";
+    }; // end soundtrack error
     panel.append(musicControl);
   } // end optional soundtrack controls
   app.append(panel);
