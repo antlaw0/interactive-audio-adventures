@@ -21,7 +21,8 @@
           "text": "Question Knuckles Malone at the Crooked Canary.",
           "nextScene": "02B"
         }
-      ]
+      ],
+      "captions": "captions/01.vtt"
     },
     {
       "id": "02A",
@@ -35,7 +36,8 @@
           "text": "Contact Betty and follow the new clues.",
           "nextScene": "03"
         }
-      ]
+      ],
+      "captions": "captions/02A.vtt"
     },
     {
       "id": "02B",
@@ -49,7 +51,8 @@
           "text": "Call Betty and investigate the locker clue.",
           "nextScene": "03"
         }
-      ]
+      ],
+      "captions": "captions/02B.vtt"
     },
     {
       "id": "03",
@@ -67,7 +70,8 @@
           "text": "Follow the hat's hidden evidence.",
           "nextScene": "04B"
         }
-      ]
+      ],
+      "captions": "captions/03.vtt"
     },
     {
       "id": "04A",
@@ -81,7 +85,8 @@
           "text": "Bring the clues together and close the case.",
           "nextScene": "05"
         }
-      ]
+      ],
+      "captions": "captions/04A.vtt"
     },
     {
       "id": "04B",
@@ -95,7 +100,8 @@
           "text": "Bring the clues together and close the case.",
           "nextScene": "05"
         }
-      ]
+      ],
+      "captions": "captions/04B.vtt"
     },
     {
       "id": "05",
@@ -107,7 +113,8 @@
       "ending": {
         "type": "success",
         "label": "Case closed"
-      }
+      },
+      "captions": "captions/05.vtt"
     }
   ],
   "music": {
