@@ -1,6 +1,6 @@
 "use strict";
 
-// Interactive Audio Adventures v0.5.0. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.6.0. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
@@ -26,7 +26,10 @@ const state = {
   musicSrc: "",
   musicConfig: null,
   musicPlayingDesired: false,
-  presentationMode: false
+  presentationMode: false,
+  captionsEnabled: true,
+  captionCues: [],
+  captionIndex: -1
 }; // end state
 
 const el = (tag, text, className) => {
@@ -282,6 +285,9 @@ function addCategoryMusicControl() {
 } // end addCategoryMusicControl
 
 function stopAudio() {
+  audio.onended = null;
+  state.captionCues = [];
+  state.captionIndex = -1;
   audio.pause();
   audio.removeAttribute("src");
   audio.load();
@@ -421,6 +427,82 @@ function formatTime(seconds) {
   return Math.floor(total / 60) + ":" + String(total % 60).padStart(2, "0");
 } // end formatTime
 
+function parseVttTimestamp(input) {
+  const pieces = input.trim().replace(",", ".").split(":").map(Number);
+  if (pieces.some(piece => !Number.isFinite(piece))) return NaN;
+  if (pieces.length === 3) return pieces[0] * 3600 + pieces[1] * 60 + pieces[2];
+  if (pieces.length === 2) return pieces[0] * 60 + pieces[1];
+  return NaN;
+} // end parseVttTimestamp
+
+function parseCaptionVtt(content) {
+  const result = [];
+  const normalized = content.replace(/\r\n?/g, "\n").replace(/^\uFEFF/, "");
+  for (const block of normalized.split(/\n\s*\n/g)) {
+    const lines = block.trim().split("\n");
+    const timingIndex = lines.findIndex(line => line.includes("-->"));
+    if (timingIndex < 0 || lines[0].startsWith("NOTE")) continue;
+    const halves = lines[timingIndex].split("-->");
+    const start = parseVttTimestamp(halves[0]);
+    const end = parseVttTimestamp(halves[1].trim().split(/\s+/)[0]);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) continue;
+    const payload = lines.slice(timingIndex + 1).join(" ").trim();
+    const voice = payload.match(/^<v\s+([^>]+)>(.*)$/i);
+    const speaker = voice ? voice[1].trim() : "";
+    const dialogue = voice ? voice[2] : payload;
+    const text = dialogue.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").trim();
+    if (text) result.push({ start, end, speaker, text });
+  } // end vtt blocks
+  return result.sort((a, b) => a.start - b.start);
+} // end parseCaptionVtt
+
+function updateCaption() {
+  const box = document.getElementById("activeCaption");
+  if (!box) return;
+  if (!state.captionsEnabled) {
+    box.replaceChildren();
+    box.hidden = true;
+    return;
+  } // end captions disabled
+  box.hidden = false;
+  const time = audio.currentTime;
+  const nextIndex = state.captionCues.findIndex(cue => time >= cue.start && time < cue.end);
+  if (nextIndex === state.captionIndex) return;
+  state.captionIndex = nextIndex;
+  box.replaceChildren();
+  if (nextIndex < 0) return;
+  const cue = state.captionCues[nextIndex];
+  if (cue.speaker) box.append(el("span", cue.speaker, "caption-speaker"));
+  box.append(el("span", cue.text, "caption-text"));
+} // end updateCaption
+
+async function loadSceneCaptions(scene, token) {
+  state.captionCues = [];
+  state.captionIndex = -1;
+  const box = document.getElementById("activeCaption");
+  if (box) box.replaceChildren();
+  if (!scene.captions) return;
+  try {
+    const url = mediaUrl(scene.captions);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const cues = parseCaptionVtt(await response.text());
+    if (token !== state.loadToken) return;
+    state.captionCues = cues;
+    state.captionIndex = -1;
+    updateCaption();
+    const transcript = document.getElementById("sceneTranscript");
+    if (transcript) {
+      const text = cues.map(cue => (cue.speaker ? cue.speaker + ": " : "") + cue.text).join("\n");
+      transcript.textContent = text || "No caption text available.";
+    } // end transcript
+  } catch (error) {
+    if (token !== state.loadToken) return;
+    const status = document.getElementById("captionStatus");
+    if (status) status.textContent = "Captions unavailable for this scene (" + error.message + ").";
+  } // end fetch captions
+} // end loadSceneCaptions
+
 function showScene(id) {
   const scene = sceneById(id);
   if (!scene) return errorScreen("Unknown scene: " + id);
@@ -444,7 +526,12 @@ function showScene(id) {
   const sidebar = el("section", null, "scene-sidebar");
   sidebar.setAttribute("aria-label", "Scene controls and story decisions");
   const futureTranscript = el("div", null, "spoken-text-slot");
-  futureTranscript.setAttribute("aria-hidden", "true");
+  futureTranscript.setAttribute("aria-label", "Synchronized captions");
+  const captionBox = el("div", null, "active-caption");
+  captionBox.id = "activeCaption";
+  captionBox.setAttribute("aria-live", "off");
+  captionBox.setAttribute("aria-atomic", "true");
+  futureTranscript.append(captionBox);
   sidebar.append(futureTranscript);
   stage.append(sidebar);
 
@@ -453,6 +540,15 @@ function showScene(id) {
   } else {
     sidebar.append(el("p", "Text-only preview: no audio file assigned to this scene.", "info no-scene-audio"));
   } // end optional audio
+
+  if (scene.captions) {
+    const details = el("details");
+    details.append(el("summary", "Read full scene transcript"));
+    const transcriptText = el("pre", "Loading transcript…", "transcript-text");
+    transcriptText.id = "sceneTranscript";
+    details.append(transcriptText);
+    app.append(details);
+  } // end caption transcript
 
   if (scene.transcript) {
     const details = el("details");
@@ -497,6 +593,7 @@ function showScene(id) {
   } // end scene branch
   sidebar.append(decisions);
   arrangeSceneSidebar();
+  loadSceneCaptions(scene, token);
 
   if (scene.audio) {
     audio.play().catch(() => {
@@ -512,6 +609,20 @@ function buildPlayer(scene, token, target = app) {
   const status = el("p", "Audio loading. If playback does not start, select Play.", "info");
   status.id = "audioStatus";
   panel.append(status);
+  if (scene.captions) {
+    const toggle = button(state.captionsEnabled ? "Hide captions" : "Show captions", () => {
+      state.captionsEnabled = !state.captionsEnabled;
+      toggle.textContent = state.captionsEnabled ? "Hide captions" : "Show captions";
+      toggle.setAttribute("aria-pressed", String(state.captionsEnabled));
+      state.captionIndex = -1;
+      updateCaption();
+    }, "secondary captions-toggle");
+    toggle.setAttribute("aria-pressed", String(state.captionsEnabled));
+    panel.append(toggle);
+    const captionStatus = el("p", "", "caption-status");
+    captionStatus.id = "captionStatus";
+    panel.append(captionStatus);
+  } // end caption toggle
   const controls = el("div", null, "player-buttons");
   const restart = button("Restart", () => { audio.currentTime = 0; audio.play().catch(() => {}); resumeMusic(); });
   const rewind = button("Rewind 15 seconds", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
@@ -582,13 +693,14 @@ function buildPlayer(scene, token, target = app) {
     if (token !== state.loadToken) return;
     seek.value = String(Math.floor(audio.currentTime));
     elapsed.textContent = formatTime(audio.currentTime);
+    updateCaption();
   }; // end timeupdate
   audio.onerror = () => {
     if (token !== state.loadToken) return;
     status.textContent = "Audio could not be loaded. You can still reveal the story choices below.";
     status.classList.add("error");
   }; // end onerror
-  seek.addEventListener("input", () => { if (Number.isFinite(audio.duration)) audio.currentTime = Number(seek.value); });
+  seek.addEventListener("input", () => { if (Number.isFinite(audio.duration)) { audio.currentTime = Number(seek.value); updateCaption(); } });
 } // end buildPlayer
 
 homeButton.addEventListener("click", () => { if (state.catalog) showLibrary(); });
