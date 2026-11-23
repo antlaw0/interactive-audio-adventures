@@ -229,3 +229,95 @@ body.presentation-mode:has(.scene-stage) details { margin: .2rem 0; flex: 0 0 au
   body.presentation-mode:has(.scene-stage) .story-art { height: 190px; }
   body.presentation-mode:has(.scene-stage) .player { height: auto; }
 }
+
+/* v0.5.0: audience decisions in the right rail, above playback controls. */
+.scene-sidebar { display: block; min-width: 0; }
+.scene-decisions { min-width: 0; }
+.scene-decisions .choices { display: grid; gap: .75rem; margin-top: .75rem; }
+.scene-decisions .end-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.spoken-text-slot { display: none; }
+
+body.presentation-mode:has(.scene-stage) .scene-sidebar {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  overflow: hidden;
+}
+body.presentation-mode:has(.scene-stage) .spoken-text-slot {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  pointer-events: none;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: .2rem;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions h2 {
+  margin: 0 0 .4rem;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions .choices {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(.4rem, .8vh, .8rem);
+  margin: .3rem 0;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions .choice {
+  width: 100%;
+  min-height: clamp(48px, 6.5vh, 86px);
+  font-size: clamp(1rem, 1.45vw, 1.4rem);
+  padding: .5rem .8rem;
+  text-align: left;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions #revealChoices {
+  margin: .2rem 0;
+  min-height: 36px;
+  font-size: .85rem;
+}
+body.presentation-mode:has(.scene-stage) .scene-sidebar .player {
+  flex: 0 0 auto;
+  height: auto;
+  max-height: 42%;
+  min-height: 0;
+  overflow: auto;
+  justify-content: flex-start;
+  padding: .65rem;
+}
+body.presentation-mode:has(.scene-stage) .scene-sidebar .player-buttons {
+  flex-wrap: wrap;
+}
+body.presentation-mode:has(.scene-stage) .scene-sidebar .player-buttons button {
+  min-width: 0;
+  flex: 1 1 21%;
+  min-height: 42px;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions .end-actions {
+  margin: .35rem 0;
+  display: flex;
+  gap: .4rem;
+}
+body.presentation-mode:has(.scene-stage) .scene-decisions .end-actions button {
+  flex: 1 1 100%;
+  min-height: 45px;
+}
+@media (max-width: 899px) {
+  body.presentation-mode:has(.scene-stage) .scene-stage {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  body.presentation-mode:has(.scene-stage) .scene-sidebar {
+    height: auto;
+    overflow: visible;
+  }
+  body.presentation-mode:has(.scene-stage) .spoken-text-slot { display: none; }
+  body.presentation-mode:has(.scene-stage) .story-art {
+    height: auto;
+    max-height: 35vh;
+  }
+  body.presentation-mode:has(.scene-stage) .scene-sidebar .player { max-height: none; }
+}
