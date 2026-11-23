@@ -7,6 +7,7 @@ const audio = document.getElementById("sceneAudio");
 let music = document.getElementById("backgroundMusic");
 let standbyMusic = document.getElementById("standbyMusic");
 let musicTransition = 0;
+let fadeTarget = null;
 const homeButton = document.getElementById("homeButton");
 
 const state = {
@@ -58,6 +59,7 @@ function musicMessage(message) {
 
 function cancelMusicFade() {
   musicTransition += 1;
+  fadeTarget = null;
   standbyMusic.pause();
   standbyMusic.removeAttribute("src");
   standbyMusic.load();
@@ -111,9 +113,20 @@ function resumeMusic() {
 
 function pauseMusic() {
   state.musicPlayingDesired = false;
-  music.pause();
-  standbyMusic.pause();
-  cancelMusicFade();
+  if (fadeTarget) {
+    const outgoing = music;
+    const incoming = standbyMusic;
+    outgoing.pause();
+    incoming.pause();
+    musicTransition += 1;
+    music = incoming;
+    standbyMusic = outgoing;
+    standbyMusic.removeAttribute("src");
+    standbyMusic.load();
+    fadeTarget = null;
+  } else {
+    music.pause();
+  } // end fade pause
   music.volume = state.musicLevel;
 } // end pauseMusic
 
@@ -134,6 +147,17 @@ function setSoundtrack(config, shouldPlay = true) {
     return;
   } // end same track
 
+  if (fadeTarget) {
+    const outgoing = music;
+    const incoming = standbyMusic;
+    musicTransition += 1;
+    outgoing.pause();
+    music = incoming;
+    standbyMusic = outgoing;
+    standbyMusic.removeAttribute("src");
+    standbyMusic.load();
+    fadeTarget = null;
+  } // end previous transition
   cancelMusicFade();
   state.musicReady = true;
   state.musicSrc = desired.src;
@@ -160,6 +184,7 @@ function setSoundtrack(config, shouldPlay = true) {
   fadingIn.volume = 0;
   fadingIn.load();
   const token = ++musicTransition;
+  fadeTarget = fadingIn;
   const durationMs = 1200;
   let startedAt = null;
   const oldVolume = fadingOut.volume;
@@ -178,6 +203,7 @@ function setSoundtrack(config, shouldPlay = true) {
       fadingOut.load();
       music = fadingIn;
       standbyMusic = fadingOut;
+      fadeTarget = null;
       music.volume = state.musicLevel;
     } // end fade
   }; // end doFade
