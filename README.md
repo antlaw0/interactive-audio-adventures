@@ -2,7 +2,7 @@
 
 A reusable, accessible, static choose-your-own-adventure web app with categories, independent adventures, branching scenes, optional images and recorded audio. No build step, account system, or backend.
 
-**Current version: 0.4.0**
+**Current version: 0.5.0**
 
 ## Start locally
 
@@ -179,3 +179,9 @@ This is a layout change, not a separate player: music, scene audio, story progre
 When mirroring a phone or casting the *entire screen*, the audience sees the same view and controls as the host, including story choices. The host continues to make the selections on the original device. Independent phone-control and TV-display sessions require a separate synchronized multi-device feature and are **not** part of this release. Browser or OS-level mirroring/casting setup is outside the app.
 
 Test presentation view on the target phone and television, since landscape and portrait orientations, TV overscan and browser fullscreen restrictions vary.
+
+## Presentation right-hand choice rail (v0.5.0)
+
+On desktop-sized presentation/fullscreen screens, scene artwork stays on the left and a right-hand rail contains, from top to bottom, a reserved empty area for future spoken-text captions, vertically stacked story choices, and the scene audio player below. One- and multi-choice scenes as well as story endings use the same rail. The scene controls and choices remain accessible with the keyboard. The actual DOM is reordered on switching between standard/presentation modes so the focus order follows the visual order in each mode. Standard view keeps the player before the choices.
+
+The transcript/caption area is reserved for future work; no live captions or transcripts were added. Compact layouts allow scrolling rather than clipping controls.
