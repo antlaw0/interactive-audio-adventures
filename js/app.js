@@ -1,9 +1,10 @@
 "use strict";
 
-// Interactive Audio Adventures v0.1.0. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.2.0. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
+const music = document.getElementById("backgroundMusic");
 const homeButton = document.getElementById("homeButton");
 
 const state = {
@@ -13,7 +14,9 @@ const state = {
   scene: null,
   manifestUrl: null,
   completedAudio: false,
-  loadToken: 0
+  loadToken: 0,
+  musicReady: false,
+  musicLevel: 0.2
 }; // end state
 
 const el = (tag, text, className) => {
@@ -42,6 +45,34 @@ function emptyScreen(label, title, description) {
   requestAnimationFrame(() => heading.focus());
 } // end emptyScreen
 
+function stopMusic() {
+  music.pause();
+  music.removeAttribute("src");
+  music.load();
+  state.musicReady = false;
+} // end stopMusic
+
+function setupMusic(manifest) {
+  stopMusic();
+  if (!manifest.music) return;
+  const config = typeof manifest.music === "string" ? { src: manifest.music } : manifest.music;
+  if (!config || typeof config.src !== "string" || !config.src.trim()) return;
+  state.musicLevel = typeof config.volume === "number" ? Math.max(0, Math.min(1, config.volume)) : 0.2;
+  music.volume = state.musicLevel;
+  music.loop = true;
+  music.src = mediaUrl(config.src);
+  music.load();
+  state.musicReady = true;
+} // end setupMusic
+
+function resumeMusic() {
+  if (!state.musicReady || !music.paused) return;
+  music.play().catch(() => {
+    const status = document.getElementById("musicStatus");
+    if (status) status.textContent = "Soundtrack unavailable. Story audio remains playable.";
+  }); // end music start attempt
+} // end resumeMusic
+
 function stopAudio() {
   audio.pause();
   audio.removeAttribute("src");
@@ -49,6 +80,7 @@ function stopAudio() {
 } // end stopAudio
 
 function errorScreen(message, recovery) {
+  stopMusic();
   emptyScreen("Unable to continue", "Something went wrong", message);
   app.append(button("Return to main library", () => showLibrary(), "secondary"));
   if (recovery) app.append(el("p", recovery, "info"));
@@ -73,6 +105,7 @@ function addBack(label, callback) {
 } // end addBack
 
 function showLibrary() {
+  stopMusic();
   state.loadToken += 1;
   state.category = null;
   state.adventure = null;
@@ -91,6 +124,7 @@ function showLibrary() {
 } // end showLibrary
 
 async function showCategory(categoryId) {
+  stopMusic();
   const category = findCategory(categoryId);
   if (!category) return errorScreen("Unknown category: " + categoryId);
   const token = ++state.loadToken;
@@ -146,6 +180,7 @@ async function openAdventure(id) {
   const listing = findListing(id);
   if (!listing) return errorScreen("Adventure is not registered: " + id);
   const token = ++state.loadToken;
+  stopMusic();
   emptyScreen("Loading adventure", "Opening your story…");
   try {
     const url = new URL(listing.manifest, new URL("adventures/catalog.json", document.baseURI)).href;
@@ -154,6 +189,7 @@ async function openAdventure(id) {
     validateAdventure(manifest);
     state.adventure = manifest;
     state.manifestUrl = url;
+    setupMusic(manifest);
     showScene(manifest.startScene);
   } catch (error) {
     if (token === state.loadToken) errorScreen(error.message);
@@ -208,7 +244,7 @@ function showScene(id) {
     app.append(el("h2", scene.ending.label || "The end"));
     app.append(el("p", "You have reached an ending."));
     const actions = el("div", null, "end-actions");
-    actions.append(button("Replay this adventure", () => showScene(state.adventure.startScene)));
+    actions.append(button("Replay this adventure", () => { setupMusic(state.adventure); showScene(state.adventure.startScene); }));
     actions.append(button("More adventures in this category", () => showCategory(state.category.id)));
     actions.append(button("Main library", showLibrary, "secondary"));
     app.append(actions);
@@ -234,11 +270,11 @@ function showScene(id) {
       const reveal = document.getElementById("revealChoices");
       if (reveal) reveal.remove();
     } // end unlockChoices
-    audio.addEventListener("ended", unlockChoices, { once: true });
+    audio.onended = unlockChoices;
   } // end scene branch
 
   if (scene.audio) {
-    audio.play().catch(() => {
+    audio.play().then(() => resumeMusic()).catch(() => {
       const status = document.getElementById("audioStatus");
       if (status && token === state.loadToken) status.textContent = "Select Play to start the scene audio.";
     }); // end autoplay fallback
@@ -252,9 +288,16 @@ function buildPlayer(scene, token) {
   status.id = "audioStatus";
   panel.append(status);
   const controls = el("div", null, "player-buttons");
-  const restart = button("Restart", () => { audio.currentTime = 0; audio.play().catch(() => {}); });
+  const restart = button("Restart", () => { audio.currentTime = 0; audio.play().then(() => resumeMusic()).catch(() => {}); });
   const rewind = button("Rewind 15 seconds", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
-  const play = button("Play", () => { if (audio.paused) audio.play().catch(() => { status.textContent = "Playback failed. Check that the audio file exists."; }); else audio.pause(); });
+  const play = button("Play", () => {
+    if (audio.paused) {
+      audio.play().then(() => resumeMusic()).catch(() => { status.textContent = "Playback failed. Check that the audio file exists."; });
+    } else {
+      audio.pause();
+      music.pause();
+    } // end play toggle
+  });
   const forward = button("Forward 15 seconds", () => { audio.currentTime = Math.min(Number.isFinite(audio.duration) ? audio.duration : Infinity, audio.currentTime + 15); });
   controls.append(restart, rewind, play, forward);
   panel.append(controls);
@@ -270,10 +313,31 @@ function buildPlayer(scene, token) {
   const duration = el("span", "0:00", "time");
   seekRow.append(elapsed, seek, duration);
   panel.append(seekRow);
+  if (state.musicReady) {
+    const musicControl = el("div", null, "music-controls");
+    const musicLabel = el("label", "Background music volume");
+    const musicSlider = el("input");
+    musicSlider.type = "range";
+    musicSlider.min = "0";
+    musicSlider.max = "100";
+    musicSlider.step = "5";
+    musicSlider.value = String(Math.round(state.musicLevel * 100));
+    musicSlider.id = "musicVolume";
+    musicLabel.htmlFor = musicSlider.id;
+    musicSlider.addEventListener("input", () => {
+      state.musicLevel = Number(musicSlider.value) / 100;
+      music.volume = state.musicLevel;
+    }); // end slider input
+    musicControl.append(musicLabel, musicSlider);
+    const musicStatus = el("p", "", "music-status");
+    musicStatus.id = "musicStatus";
+    musicControl.append(musicStatus);
+    panel.append(musicControl);
+  } // end optional soundtrack controls
   app.append(panel);
   audio.src = mediaUrl(scene.audio);
   audio.load();
-  audio.onplay = () => { if (token === state.loadToken) { play.textContent = "Pause"; status.textContent = "Audio playing."; } };
+  audio.onplay = () => { if (token === state.loadToken) { play.textContent = "Pause"; status.textContent = "Audio playing."; resumeMusic(); } };
   audio.onpause = () => { if (token === state.loadToken) play.textContent = "Play"; };
   audio.onloadedmetadata = () => {
     if (token !== state.loadToken) return;
