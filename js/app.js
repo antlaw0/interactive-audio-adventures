@@ -1,6 +1,6 @@
 "use strict";
 
-// Interactive Audio Adventures v0.2.0. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.2.1. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
@@ -16,7 +16,8 @@ const state = {
   completedAudio: false,
   loadToken: 0,
   musicReady: false,
-  musicLevel: 0.2
+  musicLevel: 0.2,
+  musicPlayPending: false
 }; // end state
 
 const el = (tag, text, className) => {
@@ -47,6 +48,7 @@ function emptyScreen(label, title, description) {
 
 function stopMusic() {
   music.pause();
+  state.musicPlayPending = false;
   music.removeAttribute("src");
   music.load();
   state.musicReady = false;
@@ -65,12 +67,26 @@ function setupMusic(manifest) {
   state.musicReady = true;
 } // end setupMusic
 
+function musicMessage(message) {
+  const status = document.getElementById("musicStatus");
+  if (status) status.textContent = message;
+} // end musicMessage
+
 function resumeMusic() {
-  if (!state.musicReady || !music.paused) return;
-  music.play().catch(() => {
-    const status = document.getElementById("musicStatus");
-    if (status) status.textContent = "Soundtrack unavailable. Story audio remains playable.";
-  }); // end music start attempt
+  if (!state.musicReady || !music.paused || state.musicPlayPending) return;
+  state.musicPlayPending = true;
+  music.play().then(() => {
+    state.musicPlayPending = false;
+    musicMessage("");
+  }).catch(error => {
+    state.musicPlayPending = false;
+    if (error.name === "AbortError") return;
+    if (error.name === "NotAllowedError") {
+      musicMessage("Browser blocked automatic music playback. Select Start background music.");
+    } else {
+      musicMessage("Music playback failed: " + error.name + ". Try Start background music.");
+    } // end error categorization
+  }); // end playback attempt
 } // end resumeMusic
 
 function stopAudio() {
@@ -330,12 +346,17 @@ function buildPlayer(scene, token) {
       music.volume = state.musicLevel;
     }); // end slider input
     musicControl.append(musicLabel, musicSlider);
+    const startMusic = button("Start background music", () => resumeMusic(), "secondary");
+    musicControl.append(startMusic);
     const musicStatus = el("p", "", "music-status");
     musicStatus.id = "musicStatus";
     musicControl.append(musicStatus);
     music.onerror = () => {
       if (token === state.loadToken) musicStatus.textContent = "Background music file could not be loaded. Scene audio is unaffected.";
     }; // end soundtrack error
+    music.onplay = () => {
+      if (token === state.loadToken) musicStatus.textContent = "";
+    }; // end soundtrack started
     panel.append(musicControl);
   } // end optional soundtrack controls
   app.append(panel);
