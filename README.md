@@ -2,7 +2,7 @@
 
 A reusable, accessible, static choose-your-own-adventure web app with categories, independent adventures, branching scenes, optional images and recorded audio. No build step, account system, or backend.
 
-**Current version: 0.3.0**
+**Current version: 0.4.0**
 
 ## Start locally
 
@@ -169,3 +169,13 @@ Examples:
 - The optional adventure music player volume slider remains available.
 
 Browsers may block initial automatic playback, especially on mobile and cast environments. Use the **Start background music** button on the category screen when needed. MP3s should be loop-ready and uploaded at their configured paths.
+
+## Presentation view (v0.4.0)
+
+Use the **Presentation view** button in the header to switch to an audience-friendly layout, with larger artwork, scene headings, choices and playback controls. Switch back using **Standard view**. The mode works throughout the category library and in individual adventures.
+
+This is a layout change, not a separate player: music, scene audio, story progress and keyboard/screen-reader focus are preserved when toggling the view. Native controls and semantic headings are retained. An optional **Full screen** button appears in presentation mode; it uses the browser fullscreen API when available. Fullscreen permission varies by browser and device. The presentation layout works even if fullscreen is unavailable.
+
+When mirroring a phone or casting the *entire screen*, the audience sees the same view and controls as the host, including story choices. The host continues to make the selections on the original device. Independent phone-control and TV-display sessions require a separate synchronized multi-device feature and are **not** part of this release. Browser or OS-level mirroring/casting setup is outside the app.
+
+Test presentation view on the target phone and television, since landscape and portrait orientations, TV overscan and browser fullscreen restrictions vary.
