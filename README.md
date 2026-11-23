@@ -120,7 +120,7 @@ WAV and MP3 work, but MP3 is recommended to reduce GitHub Pages storage and band
 git pull --ff-only
 ```
 
-## Per-adventure background music (v0.2.0)
+## Per-adventure background music (v0.2.1)
 
 Every adventure may define one looping background soundtrack in its `adventure.json`:
 
@@ -143,3 +143,7 @@ Every adventure may define one looping background soundtrack in its `adventure.j
 
 If no `music` property is defined, an adventure plays exactly as it did previously.
 
+
+### Music playback troubleshooting
+
+The player includes a **Start background music** button, which explicitly starts music in response to a user gesture if a browser blocks automatic playback. If music fails, the UI distinguishes browser autoplay restriction from other playback errors. The soundtrack stays running across scene changes and remains independently adjustable.
