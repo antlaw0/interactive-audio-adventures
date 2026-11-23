@@ -46,3 +46,9 @@ footer { text-align:center; padding: 2rem 1rem; color:#c4c2c9; }
 .skip-link { position: absolute; left: .5rem; top: -100px; background: #fff; color: #111; padding: .7rem; z-index: 100; }
 .skip-link:focus { top: .5rem; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; } }
+
+.music-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; border-top: 1px solid #5c5765; padding-top: .85rem; margin-top: 1rem; }
+.music-controls label { font-weight: 650; }
+.music-controls input { flex: 1; min-width: 120px; accent-color: #f1c879; }
+.music-status { flex-basis: 100%; margin: 0; color: #f0cca0; }
+.music-status:empty { display: none; }
