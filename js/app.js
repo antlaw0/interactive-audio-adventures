@@ -1,6 +1,6 @@
 "use strict";
 
-// Interactive Audio Adventures v0.4.0. Uses plain JSON and static assets.
+// Interactive Audio Adventures v0.5.0. Uses plain JSON and static assets.
 const app = document.getElementById("app");
 const main = document.getElementById("main");
 const audio = document.getElementById("sceneAudio");
@@ -49,7 +49,21 @@ function applyPresentationMode(active) {
   presentationButton.setAttribute("aria-pressed", String(active));
   presentationButton.textContent = active ? "Standard view" : "Presentation view";
   fullscreenButton.hidden = !active;
+  arrangeSceneSidebar();
 } // end applyPresentationMode
+
+function arrangeSceneSidebar() {
+  const sidebar = document.querySelector(".scene-sidebar");
+  if (!sidebar) return;
+  const decisions = sidebar.querySelector(".scene-decisions");
+  const player = sidebar.querySelector(".player, .no-scene-audio");
+  if (!decisions || !player) return;
+  if (state.presentationMode) {
+    sidebar.insertBefore(decisions, player);
+  } else {
+    sidebar.insertBefore(player, decisions);
+  } // end scene element ordering
+} // end arrangeSceneSidebar
 
 presentationButton.addEventListener("click", () => {
   applyPresentationMode(!state.presentationMode);
@@ -427,10 +441,17 @@ function showScene(id) {
     stage.append(art);
   } // end optional image
 
+  const sidebar = el("section", null, "scene-sidebar");
+  sidebar.setAttribute("aria-label", "Scene controls and story decisions");
+  const futureTranscript = el("div", null, "spoken-text-slot");
+  futureTranscript.setAttribute("aria-hidden", "true");
+  sidebar.append(futureTranscript);
+  stage.append(sidebar);
+
   if (scene.audio) {
-    buildPlayer(scene, token, stage);
+    buildPlayer(scene, token, sidebar);
   } else {
-    stage.append(el("p", "Text-only preview: no audio file assigned to this scene.", "info"));
+    sidebar.append(el("p", "Text-only preview: no audio file assigned to this scene.", "info no-scene-audio"));
   } // end optional audio
 
   if (scene.transcript) {
@@ -440,16 +461,18 @@ function showScene(id) {
     app.append(details);
   } // end optional transcript
 
+  const decisions = el("section", null, "scene-decisions");
+  decisions.setAttribute("aria-label", "Story decisions");
   if (scene.ending) {
-    app.append(el("h2", scene.ending.label || "The end"));
-    app.append(el("p", "You have reached an ending."));
+    decisions.append(el("h2", scene.ending.label || "The end"));
+    decisions.append(el("p", "You have reached an ending."));
     const actions = el("div", null, "end-actions");
     actions.append(button("Replay this adventure", () => { showScene(state.adventure.startScene); }));
     actions.append(button("More adventures in this category", () => showCategory(state.category.id)));
     actions.append(button("Main library", showLibrary, "secondary"));
-    app.append(actions);
+    decisions.append(actions);
   } else {
-    app.append(el("h2", "What will you do?"));
+    decisions.append(el("h2", "What will you do?"));
     const choices = el("div", null, "choices");
     const choiceButtons = scene.choices.map((choice, index) => {
       const item = button((index + 1) + ". " + choice.text, () => showScene(choice.nextScene), "choice");
@@ -457,11 +480,11 @@ function showScene(id) {
       choices.append(item);
       return item;
     }); // end choiceButtons
-    app.append(choices);
+    decisions.append(choices);
     if (scene.audio) {
       const skip = button("Reveal choices without finishing audio", () => unlockChoices(), "secondary");
       skip.id = "revealChoices";
-      app.insertBefore(skip, choices);
+      decisions.insertBefore(skip, choices);
     } // end skip action
     function unlockChoices() {
       if (token !== state.loadToken) return;
@@ -472,6 +495,8 @@ function showScene(id) {
     } // end unlockChoices
     audio.onended = unlockChoices;
   } // end scene branch
+  sidebar.append(decisions);
+  arrangeSceneSidebar();
 
   if (scene.audio) {
     audio.play().catch(() => {
